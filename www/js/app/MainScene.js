@@ -15,15 +15,18 @@ function MainScene() {
 	var clock = new THREE.Clock();
 
 	var catcopterCollada;
-	var catcopterScene;
-	var catcopterBody;
-	var catcopterPropFL, catcopterPropFR, catcopterPropRL, catcopterPropRR;
+	var catcopter;
+	var catcopter2;
 
-	var animations;
-	var kfAnimations = [ ];
-	var kfAnimationsLength = 0;
 	var timestamp;
 	var lastTimestamp;
+
+	var objectsToRender = [];
+
+	var animHandler = THREE.AnimationHandler;
+	var kfAnimations = [];
+	var kfAnimationsLength;
+	var animations;
 	var progress = 0;
 
 	this.init = function() {
@@ -72,7 +75,6 @@ function MainScene() {
 	};
 
 	this.initFloor = function() {
-
 		var planeSimple = new THREE.PlaneGeometry( 600, 600, 40, 40 );
 		var planeTesselated = new THREE.PlaneGeometry( 600, 600, 40, 40 );
 		var matWire = new THREE.MeshBasicMaterial( { color :0x666666, wireframe: true, wireframeLinewidth: 2 } );
@@ -138,144 +140,70 @@ function MainScene() {
 		catcopterCollada = collada;
 	}
 
+	this.getCatcopterScene = function() {
+		return THREE.SceneUtils.cloneObject(catcopterCollada.scene);
+	}
+
 	this.start = function() {
-		catcopterScene = catcopterCollada.scene;
+		catcopter = new Catcopter(me.getCatcopterScene(), catcopterCollada.animations);
+		scene.add( catcopter.scene );
+		objectsToRender.push(catcopter);
+		catcopter.scene.position.y = 200;
 
-		animations = catcopterCollada.animations;
-		kfAnimationsLength = animations.length;
-		
-		catcopterScene.updateMatrix();
-		catcopterScene.position.y = 200;
 
-		catcopterBody = catcopterScene.children[0];
-		addShadow(catcopterBody);
+		catcopter2 = new Catcopter(me.getCatcopterScene(), catcopterCollada.animations);
+		scene.add( catcopter2.scene );
+		objectsToRender.push(catcopter2);
+		catcopter2.scene.position.x = 500;
+		catcopter2.scene.position.y = 200;
 
-		catcopterPropFL = catcopterScene.children[1];
-		addShadow(catcopterPropFL);
-		catcopterPropRL = catcopterScene.children[2];
-		addShadow(catcopterPropRL);
-		catcopterPropRR = catcopterScene.children[3];
-		addShadow(catcopterPropRR);
-		catcopterPropFR = catcopterScene.children[4];
-		addShadow(catcopterPropFR);
+		console.log(catcopter.getMeshPropFL() == catcopter2.getMeshPropFL());
 
-		scene.add( catcopterScene );
-
-		var animHandler = THREE.AnimationHandler;
-
-		for ( var i = 0; i < kfAnimationsLength; ++i ) {
-
-			var animation = animations[ i ];
-			animHandler.add( animation );
-
-			var kfAnimation = new THREE.KeyFrameAnimation( animation.node, animation.name );
-			kfAnimation.timeScale = 1;
-			kfAnimations.push( kfAnimation );
-		}
-
-		start();
-		loop(lastTimestamp);
+		render(lastTimestamp);
 	}
 
-
-	function addShadow(mesh) {
-		mesh.castShadow = true;
-		mesh.receiveShadow = true;
-	}
-
-	function start() {
-		for ( var i = 0; i < kfAnimationsLength; ++i ) {
-
-			var animation = kfAnimations[i];
-
-			for ( var h = 0, hl = animation.hierarchy.length; h < hl; h++ ) {
-
-				var keys = animation.data.hierarchy[ h ].keys;
-				var sids = animation.data.hierarchy[ h ].sids;
-				var obj = animation.hierarchy[ h ];
-
-				if ( keys.length && sids ) {
-
-					for ( var s = 0; s < sids.length; s++ ) {
-
-						var sid = sids[ s ];
-						var next = animation.getNextKeyWith( sid, h, 0 );
-
-						if ( next ) next.apply( sid );
-
-					}
-
-					obj.matrixAutoUpdate = false;
-					animation.data.hierarchy[ h ].node.updateMatrix();
-					obj.matrixWorldNeedsUpdate = true;
-
-				}
-
-			}
-
-			animation.play( true, 0 );
-			lastTimestamp = Date.now();
-
-		}
-
-	}
-
-	var t = 0;
-
-	function loop(timestamp) {
+	function render(timestamp) {
 		if(isNaN(timestamp) || isNaN(lastTimestamp)) {
 			if(!isNaN(timestamp)) {
 				lastTimestamp = timestamp;
 			}
-			requestAnimationFrame( loop, renderer.domElement );
+			requestAnimationFrame( render, renderer.domElement );
 			return;
-		}
-		
-		var frameTime = ( timestamp - lastTimestamp ) * 0.01; // seconds
-		if ( progress >= 0 && progress < 48 ) {
-			for ( var i = 0; i < kfAnimationsLength; ++i ) {
-
-				if(i >= 2) {
-					kfAnimations[ i ].update( frameTime );
-				} else {
-					kfAnimations[ i ].update( frameTime / 30 );
-				}
-
-			}
-		} else if ( progress >= 48 ) {
-
-			for ( var i = 0; i < kfAnimationsLength; ++i ) {
-
-				kfAnimations[ i ].stop();
-
-			}
-
-			progress = 0;
-			start();
 		}
 
 		var delta = clock.getDelta();
 
 		controls.update( delta );
 
-		if ( catcopterScene ) {
+		for(var key in objectsToRender) {
+			objectsToRender[key].render(timestamp);
+		}
 
-			var elapsed = clock.getElapsedTime();
+		var elapsed;
+		if ( catcopter ) {
 
-			catcopterScene.position.y = 300 + Math.sin(elapsed) * 75;
+			elapsed = clock.getElapsedTime();
 
-			camera.lookAt(catcopterScene.position);
+			catcopter.scene.position.y = 300 + Math.sin(elapsed) * 75;
+
+			camera.lookAt(catcopter.scene.position);
+		}
+
+		if ( catcopter2 ) {
+
+			elapsed = clock.getElapsedTime();
+
+			catcopter2.scene.position.y = 300 + Math.sin(elapsed) * 75;
 		}
 
 		floor.position.z += dz;
 		if( floor.position.z < -1100 ) floor.position.z = 0;
 
-		progress += frameTime;
 		lastTimestamp = timestamp;
 
 		renderer.render( scene, camera );
 		stats.update();
-		requestAnimationFrame( loop, renderer.domElement );
+		requestAnimationFrame( render, renderer.domElement );
 	}
 
 }
