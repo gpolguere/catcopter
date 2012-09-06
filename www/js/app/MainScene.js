@@ -157,8 +157,6 @@ function MainScene() {
 		catcopter2.scene.position.x = 500;
 		catcopter2.scene.position.y = 200;
 
-		console.log(catcopter.getMeshPropFL() == catcopter2.getMeshPropFL());
-
 		render(lastTimestamp);
 	}
 
@@ -187,6 +185,7 @@ function MainScene() {
 			catcopter.scene.position.y = 300 + Math.sin(elapsed) * 75;
 
 			camera.lookAt(catcopter.scene.position);
+		catcopter.getMeshPropFL().rotation.y -= 0.005;
 		}
 
 		if ( catcopter2 ) {

@@ -11,6 +11,7 @@ function Catcopter(scene, animations, globalClock) {
 	var meshBody = this.scene.children[0];
 	Utils.addShadow(meshBody);
 	var meshPropFL = this.scene.children[1];
+	console.log(meshPropFL instanceof THREE.Mesh);
 	Utils.addShadow(meshPropFL);
 	var meshPropRL = this.scene.children[2];
 	Utils.addShadow(meshPropRL);
@@ -28,11 +29,13 @@ function Catcopter(scene, animations, globalClock) {
 	this.render = function(timestamp) {
 		var frameTime = ( timestamp - lastTimestamp ) * 0.01; // seconds
 
+		// meshPropFL.rotation.y = progress;
+
 		progress += frameTime;
 		lastTimestamp = timestamp;
 	};
 
 	this.getMeshPropFL = function() {
-		return me.meshPropFL;
+		return meshPropFL;
 	};
 }
