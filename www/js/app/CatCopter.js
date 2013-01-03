@@ -1,17 +1,12 @@
-function Catcopter(scene, animations, globalClock) {
+function Catcopter(g) {
 	var me = this;
 
-	var clock = globalClock;
+	var geometry = g;
 
-	this.scene = scene;
-
-	var animations = animations;
-	var kfAnimations = [];
-
+	/*
 	var meshBody = this.scene.children[0];
 	Utils.addShadow(meshBody);
 	var meshPropFL = this.scene.children[1];
-	console.log(meshPropFL instanceof THREE.Mesh);
 	Utils.addShadow(meshPropFL);
 	var meshPropRL = this.scene.children[2];
 	Utils.addShadow(meshPropRL);
@@ -24,6 +19,14 @@ function Catcopter(scene, animations, globalClock) {
 	var meshEyeR = this.scene.children[6];
 	Utils.addShadow(meshEyeR);
 
+	this.getMeshPropFL = function() {
+		return meshPropFL;
+	};
+	*/
+
+	var material = new THREE.MeshFaceMaterial();
+	this.mesh = new THREE.SkinnedMesh(geometry, material);
+
 	var progress = 0;
 	var lastTimestamp = Date.now();
 	this.render = function(timestamp) {
@@ -33,9 +36,5 @@ function Catcopter(scene, animations, globalClock) {
 
 		progress += frameTime;
 		lastTimestamp = timestamp;
-	};
-
-	this.getMeshPropFL = function() {
-		return meshPropFL;
 	};
 }

@@ -15,6 +15,7 @@ function MainScene() {
 	var clock = new THREE.Clock();
 
 	var catcopterCollada;
+	var catcopterGeometry;
 	var catcopter;
 	var catcopter2;
 
@@ -59,8 +60,8 @@ function MainScene() {
 		aLight = new THREE.AmbientLight( 0x444444 );
 		scene.add( aLight );
 
-		sLight = new THREE.SpotLight( 0xffffff, 0.7, 0, Math.PI, 1 );
-		sLight.position.set( 500, 700, 1000 );
+		sLight = new THREE.SpotLight( 0xffffff, 1, 100, Math.PI, 1 );
+		sLight.position.set( 500, 700, 500 );
 		sLight.target.position.set(0, 0, 0);
 		sLight.castShadow = true;
 		sLight.shadowCameraNear = 700;
@@ -70,8 +71,9 @@ function MainScene() {
 		sLight.shadowDarkness = 0.3;
 		sLight.shadowMapWidth = 2048;
 		sLight.shadowMapHeight = 1024;
-		// sLight.shadowCameraVisible = true;
+		sLight.shadowCameraVisible = true;
 		scene.add( sLight );
+
 	};
 
 	this.initFloor = function() {
@@ -136,6 +138,10 @@ function MainScene() {
 		renderer.setSize( window.innerWidth, window.innerHeight );
 	}
 
+	this.setCatcopterGeometry = function(geometry) {
+		catcopterGeometry = geometry;
+	}
+
 	this.setCatcopterCollada = function(collada) {
 		catcopterCollada = collada;
 	}
@@ -145,17 +151,12 @@ function MainScene() {
 	}
 
 	this.start = function() {
-		catcopter = new Catcopter(me.getCatcopterScene(), catcopterCollada.animations);
-		scene.add( catcopter.scene );
+		catcopter = new Catcopter(catcopterGeometry);
+		scene.add(catcopter.mesh);
+		catcopter.mesh.position.z = 100;
 		objectsToRender.push(catcopter);
-		catcopter.scene.position.y = 200;
 
-
-		catcopter2 = new Catcopter(me.getCatcopterScene(), catcopterCollada.animations);
-		scene.add( catcopter2.scene );
-		objectsToRender.push(catcopter2);
-		catcopter2.scene.position.x = 500;
-		catcopter2.scene.position.y = 200;
+		console.log(catcopterGeometry);
 
 		render(lastTimestamp);
 	}
@@ -182,17 +183,9 @@ function MainScene() {
 
 			elapsed = clock.getElapsedTime();
 
-			catcopter.scene.position.y = 300 + Math.sin(elapsed) * 75;
+			catcopter.mesh.position.y = 300 + Math.sin(elapsed) * 75;
 
-			camera.lookAt(catcopter.scene.position);
-		catcopter.getMeshPropFL().rotation.y -= 0.005;
-		}
-
-		if ( catcopter2 ) {
-
-			elapsed = clock.getElapsedTime();
-
-			catcopter2.scene.position.y = 300 + Math.sin(elapsed) * 75;
+			camera.lookAt(catcopter.mesh.position);
 		}
 
 		floor.position.z += dz;
